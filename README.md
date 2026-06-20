@@ -30,7 +30,7 @@ your machine except optional phone push notifications.
   weather, the date/time.
 - **Phone notifications** — push reminders/messages to your phone via [ntfy](https://ntfy.sh).
 - **Other computers** — run commands on other machines over SSH.
-- **Voice** — custom wake word (default **"puddles"**), offline speech-to-text
+- **Voice** — custom wake word (default **"ekko"**), offline speech-to-text
   (Whisper), offline text-to-speech.
 
 ## Accessibility / fully hands-free use
@@ -51,14 +51,17 @@ falls back to OCR for the rest.
 
 ## Wake word
 
-Set any wake word in `config.yaml` → `assistant.wake_word`. Two backends:
+Default wake word is **"ekko"** (accepts aliases: "echo", "ecko", "eko"). Set any wake word in `config.yaml` → `assistant.wake_word`. Two backends:
 
 - **Pretrained (low CPU):** `hey_jarvis`, `alexa`, `hey_mycroft`, `hey_rhasspy`
   use openWakeWord.
-- **Any custom word** (like `puddles`): handled by a lightweight Whisper spotter —
+- **Any custom word** (like `ekko`): handled by a lightweight Whisper spotter —
   it transcribes short speech bursts and matches your word. No training needed.
-  For best accuracy on a custom word later, you can train an openWakeWord model
-  or create a Picovoice Porcupine keyword.
+  Configure aliases in `assistant.wake_word_aliases` for common variations.
+
+**Two-step rhythm:** Say the wake word (e.g. "Ekko") → wait for the reply "Yes?" →
+then speak your command. This two-step approach is reliable; one-breath commands
+("Ekko, open notepad") are supported but less reliable in noisy environments.
 
 ## Architecture
 
@@ -100,24 +103,35 @@ string) if you want phone push, and add any `remote_hosts`.
 
 Just **double-click the "Ekko Assistant" shortcut on your Desktop** (or
 `start_assistant.bat` in this folder). A window opens, it warms up (~1-2 min the
-first time), says **"Ekko is ready"** out loud, and starts listening.
+first time on a cold start), then says **"Ekko is ready"** out loud, and starts
+listening.
 
-- Talk to it: say **"Ekko"**, wait until you *hear* **"Yes?"**, then say your command.
-- It replies **out loud** through your speakers.
-- To stop it: close the window (or press Ctrl+C).
-- `start_assistant_hidden.vbs` runs it with no visible window (stop it via Task Manager).
+**Usage:**
+1. Say the wake word: **"Ekko"** (or an alias like "Echo")
+2. Listen for the reply: **"Yes?"** (confirming it heard you)
+3. Say your command: **"open notepad"**, **"what's my battery"**, **"set volume to 30"**, etc.
+4. It replies **out loud** through your speakers
+
+- To stop it: close the window (or press Ctrl+C)
+- `start_assistant_hidden.vbs` runs it with no visible window (stop it via Task Manager)
+- Subsequent starts are faster (~10-30s) if the model stays warm
 
 ## British (UK English) voice
 
 Ekko speaks with whatever voice Windows has. To get a British accent, run the
 included installer once:
 
-**Double-click `install_uk_voice.bat`** → approve the admin prompt. It downloads the
-British voice (Hazel/George/Susan) and exposes it to Ekko (Windows 11 hides these
-modern voices from classic apps by default; the script copies the en-GB voice token
-from the OneCore store into the SAPI5 store to fix that).
+**Double-click `install_uk_voice.bat`** → approve the admin prompt. It will:
+1. Download the British voice (Hazel/George/Susan) via Windows Capabilities
+2. Expose it to Ekko (Windows 11 hides modern voices from classic apps by default;
+   the script copies the en-GB voice token from the OneCore store into the SAPI5
+   store to fix that)
+3. Show a completion summary with available British voices
 
-`config.yaml` has `tts.voice: "en-gb"`, so Ekko picks the British voice automatically.
+After installation, **close and reopen Settings and any voice-using apps** (including
+Ekko) so Windows reloads the voice list. `config.yaml` has `tts.voice: "en-gb"`,
+so Ekko will automatically pick the British voice on the next run.
+
 Replies also use British spelling/phrasing.
 
 ## Auto-start at logon
@@ -157,7 +171,29 @@ Destructive actions (shutdown, restart, remote commands) are marked *dangerous*
 and require confirmation (`require_confirmation_for_dangerous: true`). Shutdown/
 restart use a 5-second delay; say "cancel shutdown" to abort.
 
-## Roadmap / extend it
+## Troubleshooting
+
+**Ekko doesn't hear my wake word:**
+- Confirm your microphone works: `py -m assistant.main --list-audio` (pick your device's index, add to `config.yaml` → `audio.device_index`)
+- Check wake word spelling in `config.yaml` → `assistant.wake_word`
+- Try an alias (e.g. "echo" instead of "ekko") — custom words can be phonetically sensitive
+- Test in text mode: `py -m assistant.main --text`, then type a command to verify the brain works
+
+**Ekko doesn't reply aloud:**
+- Confirm speakers work and aren't muted
+- Test: `py -m assistant.main --list-voices` (should list at least one voice)
+- If using UK voice, re-run `install_uk_voice.bat` and close/reopen voice-using apps
+
+**Ollama connection fails:**
+- Verify Ollama is running: `ollama list` in a terminal (if it errors, run `ollama serve`)
+- Confirm the model is downloaded: `ollama pull qwen2.5:3b`
+- Check Ollama is at `http://localhost:11434` (default); set `llm.ollama_base_url` in `config.yaml` if different
+
+**"Request timed out" errors:**
+- Increase `llm.timeout` in `config.yaml` (default 300s, increase for slow GPUs like GTX 1050)
+- Decrease model size (`llama2` instead of `qwen2.5:3b`) or use `--text` mode to debug
+
+## Extend it
 
 Add a new capability by writing a function in a `skills/` module and decorating it
 with `@tool(...)`. It's automatically exposed to the assistant. Smart-home
