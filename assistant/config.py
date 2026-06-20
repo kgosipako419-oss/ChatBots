@@ -35,7 +35,7 @@ DEFAULTS: dict[str, Any] = {
         "keep_alive": "30m",     # keep the model in memory so replies stay fast
     },
     "stt": {"model": "base.en", "wake_model": "tiny.en", "device": "cpu", "compute_type": "int8"},
-    "tts": {"voice": None, "rate": 180},
+    "tts": {"voice": "en-gb", "rate": 180},   # prefer a British voice if one is installed
     "audio": {
         "input_device": None,
         "silence_threshold": 0.012,

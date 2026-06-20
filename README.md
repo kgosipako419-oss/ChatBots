@@ -107,6 +107,25 @@ first time), says **"Ekko is ready"** out loud, and starts listening.
 - To stop it: close the window (or press Ctrl+C).
 - `start_assistant_hidden.vbs` runs it with no visible window (stop it via Task Manager).
 
+## British (UK English) voice
+
+Ekko speaks with whatever voice Windows has. To get a British accent, run the
+included installer once:
+
+**Double-click `install_uk_voice.bat`** → approve the admin prompt. It downloads the
+British voice (Hazel/George/Susan) and exposes it to Ekko (Windows 11 hides these
+modern voices from classic apps by default; the script copies the en-GB voice token
+from the OneCore store into the SAPI5 store to fix that).
+
+`config.yaml` has `tts.voice: "en-gb"`, so Ekko picks the British voice automatically.
+Replies also use British spelling/phrasing.
+
+## Auto-start at logon
+
+A shortcut in your Startup folder (`shell:startup`) runs `ekko_autostart.vbs` hidden
+at every logon, logging to `ekko.log`. To disable, delete that shortcut from the
+Startup folder.
+
 ## Run from a terminal
 
 ```powershell

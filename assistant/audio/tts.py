@@ -11,10 +11,19 @@ class Speaker:
         self.engine = pyttsx3.init()
         self.engine.setProperty("rate", config.get("tts.rate", 180))
 
+        # Pick the preferred voice. "en-gb"/"uk" selects whichever British voice is
+        # installed (Hazel/George/Susan), matched by various id/name spellings.
+        # Otherwise match the given text against the voice name or id. Falls back to
+        # the system default if nothing matches.
         voice_pref = config.get("tts.voice")
         if voice_pref:
+            pref = voice_pref.lower()
+            uk_markers = ["en-gb", "engb", "en_gb", "hazel", "george", "susan"]
             for voice in self.engine.getProperty("voices"):
-                if voice_pref.lower() in voice.name.lower():
+                haystack = f"{voice.name} {voice.id or ''}".lower()
+                is_match = (any(m in haystack for m in uk_markers)
+                            if pref in ("en-gb", "uk", "gb") else pref in haystack)
+                if is_match:
                     self.engine.setProperty("voice", voice.id)
                     break
 
