@@ -1,0 +1,7 @@
+# Voice stack (install after core works). Heavier; downloads models on first run.
+sounddevice>=0.4.6      # microphone capture
+numpy>=1.24             # audio buffers
+faster-whisper>=1.0     # offline speech-to-text
+openwakeword>=0.6.0     # offline wake-word detection
+pyttsx3>=2.90           # offline text-to-speech (Windows SAPI)
+onnxruntime>=1.17       # openwakeword backend

@@ -1,0 +1,52 @@
+# Copy this file to `config.yaml` and edit. config.yaml is gitignored (keeps secrets out of git).
+
+assistant:
+  name: "Computer"                  # what the assistant calls itself
+  # Any word works. Pretrained (low-CPU) options: hey_jarvis, alexa, hey_mycroft,
+  # hey_rhasspy. Any OTHER word (like "puddles") uses the Whisper spotter.
+  wake_word: "ekko"                 # sounds like "echo" — a common word the STT nails reliably
+  wake_word_aliases: ["echo", "ecko", "eko", "echo."]   # other spellings the STT might produce
+  wake_word_engine: "auto"          # auto | openwakeword | whisper
+  # Dangerous actions (shutdown/restart/remote commands) ask for confirmation first.
+  require_confirmation_for_dangerous: true
+  # Keep listening for follow-up commands after a reply (no need to repeat the wake word).
+  conversation_follow_up: true
+  # Always-on listening with NO wake word — fully hands-free. Best for blind/no-hands use
+  # in a quiet room. Uses more CPU and can mis-trigger on background speech.
+  hands_free: false
+
+llm:
+  host: "http://localhost:11434"    # Ollama server
+  model: "qwen2.5:3b"               # must support tool calling (qwen2.5, llama3.1/3.2)
+  temperature: 0.3
+  num_ctx: 4096
+  timeout: 300                      # request timeout (s); first model load can be slow
+
+stt:                                # speech-to-text (faster-whisper)
+  model: "base.en"                  # tiny.en / base.en / small.en (bigger = slower, better)
+  wake_model: "tiny.en"             # smaller/faster model used by the wake-word spotter
+  device: "cpu"                     # "cuda" if you set up GPU support
+  compute_type: "int8"
+
+tts:                                # text-to-speech (pyttsx3 / Windows SAPI)
+  voice: null                       # null = system default; or a name substring like "Zira"
+  rate: 180                         # words per minute
+
+audio:
+  input_device: null                # null = default mic; or device index (run --list-audio)
+  silence_threshold: 0.012          # RMS below this counts as silence
+  silence_duration: 1.0             # seconds of trailing silence that ends a command
+  max_record_seconds: 15            # hard cap on a single command
+
+notifications:
+  ntfy_server: "https://ntfy.sh"    # free push relay; install the ntfy app on your phone
+  ntfy_topic: ""                    # pick a long, secret topic name and subscribe to it
+
+# Other computers you can control over SSH. Example:
+# remote_hosts:
+#   livingroom-pi:
+#     host: "192.168.1.42"
+#     user: "pi"
+#     password: null                # prefer key auth; leave null to use your SSH key/agent
+#     key_path: "~/.ssh/id_ed25519"
+remote_hosts: {}
